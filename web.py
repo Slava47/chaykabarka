@@ -95,6 +95,17 @@ def dashboard():
         "GROUP BY cocktail_name ORDER BY cnt DESC LIMIT 10"
     ).fetchall()
 
+    # Social clicks stats — таблица может ещё не существовать
+    try:
+        total_social_clicks = db.execute("SELECT COUNT(*) FROM social_clicks").fetchone()[0]
+        social_clicks_by_platform = db.execute(
+            "SELECT platform, COUNT(*) as cnt FROM social_clicks "
+            "GROUP BY platform ORDER BY cnt DESC"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        total_social_clicks = 0
+        social_clicks_by_platform = []
+
     db.close()
     return render_template(
         "dashboard.html",
@@ -103,6 +114,8 @@ def dashboard():
         total_quizzes=total_quizzes,
         total_ratings=total_ratings,
         top_cocktails=top_cocktails,
+        total_social_clicks=total_social_clicks,
+        social_clicks_by_platform=social_clicks_by_platform,
     )
 
 
