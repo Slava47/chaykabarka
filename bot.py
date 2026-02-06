@@ -4,6 +4,7 @@
 """
 
 import asyncio
+import html
 import logging
 import os
 
@@ -234,7 +235,12 @@ async def social_click(callback: CallbackQuery):
     key = callback.data
     name, url = SOCIAL_URLS[key]
     await add_social_click(callback.from_user.id, name)
-    await callback.answer(url=url)
+    await callback.answer()
+    await callback.message.answer(
+        f'<a href="{html.escape(url)}">{html.escape(name)}</a>',
+        parse_mode="HTML",
+        disable_web_page_preview=True,
+    )
 
 
 # ─── HOME ─────────────────────────────────────────────────────────────────────
