@@ -47,15 +47,6 @@ async def init_db():
                 FOREIGN KEY (quiz_session_id) REFERENCES quiz_sessions(id)
             )
         """)
-        await db.execute("""
-            CREATE TABLE IF NOT EXISTS social_clicks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                platform TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(user_id)
-            )
-        """)
         await db.commit()
 
 
@@ -92,15 +83,6 @@ async def add_cocktail_rating(user_id: int, cocktail_name: str, rating: str, rev
             "INSERT INTO cocktail_ratings (user_id, cocktail_name, rating, review, quiz_session_id) "
             "VALUES (?, ?, ?, ?, ?)",
             (user_id, cocktail_name, rating, review, quiz_session_id),
-        )
-        await db.commit()
-
-
-async def add_social_click(user_id: int, platform: str):
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute(
-            "INSERT INTO social_clicks (user_id, platform) VALUES (?, ?)",
-            (user_id, platform),
         )
         await db.commit()
 

@@ -100,17 +100,6 @@ def dashboard():
         "GROUP BY cocktail_name ORDER BY cnt DESC LIMIT 10"
     ).fetchall()
 
-    # Social clicks stats — таблица может ещё не существовать
-    try:
-        total_social_clicks = db.execute("SELECT COUNT(*) FROM social_clicks").fetchone()[0]
-        social_clicks_by_platform = db.execute(
-            "SELECT platform, COUNT(*) as cnt FROM social_clicks "
-            "GROUP BY platform ORDER BY cnt DESC"
-        ).fetchall()
-    except sqlite3.OperationalError:
-        total_social_clicks = 0
-        social_clicks_by_platform = []
-
     db.close()
     return render_template(
         "dashboard.html",
@@ -119,8 +108,6 @@ def dashboard():
         total_quizzes=total_quizzes,
         total_ratings=total_ratings,
         top_cocktails=top_cocktails,
-        total_social_clicks=total_social_clicks,
-        social_clicks_by_platform=social_clicks_by_platform,
         display_limit=DISPLAY_LIMIT,
     )
 
@@ -185,14 +172,6 @@ def export_data(fmt):
         "FROM quiz_sessions qs ORDER BY qs.created_at DESC"
     ).fetchall()
 
-    try:
-        social_clicks = db.execute(
-            "SELECT sc.id, sc.user_id, sc.platform, sc.created_at "
-            "FROM social_clicks sc ORDER BY sc.created_at DESC"
-        ).fetchall()
-    except sqlite3.OperationalError:
-        social_clicks = []
-
     db.close()
 
     if fmt == "csv":
@@ -217,12 +196,6 @@ def export_data(fmt):
         writer.writerow(["id", "user_id", "alcoholic", "temperature", "taste", "tea_strength", "strength", "created_at"])
         for qs in quiz_sessions:
             writer.writerow([qs["id"], qs["user_id"], qs["alcoholic"], qs["temperature"], qs["taste"], qs["tea_strength"], qs["strength"], qs["created_at"]])
-
-        writer.writerow([])
-        writer.writerow(["--- Переходы в соц. сети ---"])
-        writer.writerow(["id", "user_id", "platform", "created_at"])
-        for sc in social_clicks:
-            writer.writerow([sc["id"], sc["user_id"], sc["platform"], sc["created_at"]])
 
         wrapper.flush()
         wrapper.detach()
@@ -253,11 +226,6 @@ def export_data(fmt):
         ws_quizzes.append(["id", "user_id", "alcoholic", "temperature", "taste", "tea_strength", "strength", "created_at"])
         for qs in quiz_sessions:
             ws_quizzes.append([qs["id"], qs["user_id"], qs["alcoholic"], qs["temperature"], qs["taste"], qs["tea_strength"], qs["strength"], qs["created_at"]])
-
-        ws_social = wb.create_sheet("Переходы в соц. сети")
-        ws_social.append(["id", "user_id", "platform", "created_at"])
-        for sc in social_clicks:
-            ws_social.append([sc["id"], sc["user_id"], sc["platform"], sc["created_at"]])
 
         output = io.BytesIO()
         wb.save(output)
