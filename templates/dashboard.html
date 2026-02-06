@@ -33,7 +33,31 @@
                 <div class="metric-value">{{ total_ratings }}</div>
                 <div class="metric-label">Оценок</div>
             </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ total_social_clicks }}</div>
+                <div class="metric-label">Переходов в соц. сети</div>
+            </div>
         </div>
+
+        {% if social_clicks_by_platform %}
+        <h2>Переходы в соц. сети</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Платформа</th>
+                    <th>Переходов</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in social_clicks_by_platform %}
+                <tr>
+                    <td>{{ s.platform }}</td>
+                    <td>{{ s.cnt }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
 
         {% if top_cocktails %}
         <h2>Популярные коктейли</h2>
