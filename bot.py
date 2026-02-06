@@ -4,6 +4,7 @@
 """
 
 import asyncio
+import html
 import logging
 import os
 
@@ -208,20 +209,38 @@ async def about(callback: CallbackQuery, state: FSMContext):
         "<b>Авторы бота:</b>\n"
         "Разработчик — Руденко Вячеслав Александрович\n"
         "Тестировщик — Баркалов Владимир Вячеславович\n\n"
-        "<b>Наши соц. сети:</b>\n"
-        '• <a href="https://vk.com/libotea">ВКонтакте</a>\n'
-        '• <a href="https://t.me/libo_tea">Telegram</a>\n'
-        '• <a href="https://www.instagram.com/libo.tea/">Instagram</a>'
+        "Наши соц. сети:"
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="ВКонтакте", callback_data="social_vk")],
+        [InlineKeyboardButton(text="Telegram", callback_data="social_tg")],
+        [InlineKeyboardButton(text="Instagram", callback_data="social_ig")],
         [InlineKeyboardButton(text="« Назад", callback_data="home")],
     ])
-    await add_social_click(callback.from_user.id, "about_view")
-    await callback.message.edit_text(
-        text, reply_markup=kb, parse_mode="HTML",
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
+
+
+# ─── SOCIAL LINKS ─────────────────────────────────────────────────────────────
+
+SOCIAL_URLS = {
+    "social_vk": ("ВКонтакте", "https://vk.com/libotea"),
+    "social_tg": ("Telegram", "https://t.me/libo_tea"),
+    "social_ig": ("Instagram", "https://www.instagram.com/libo.tea/"),
+}
+
+
+@router.callback_query(F.data.in_(SOCIAL_URLS.keys()))
+async def social_click(callback: CallbackQuery):
+    key = callback.data
+    name, url = SOCIAL_URLS[key]
+    await add_social_click(callback.from_user.id, name)
+    await callback.answer()
+    await callback.message.answer(
+        f'<a href="{html.escape(url)}">{html.escape(name)}</a>',
+        parse_mode="HTML",
         disable_web_page_preview=True,
     )
-    await callback.answer()
 
 
 # ─── HOME ─────────────────────────────────────────────────────────────────────
