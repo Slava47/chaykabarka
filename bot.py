@@ -234,12 +234,7 @@ async def social_click(callback: CallbackQuery):
     key = callback.data
     name, url = SOCIAL_URLS[key]
     await add_social_click(callback.from_user.id, name)
-    await callback.message.answer(
-        f"Переходите по ссылке: <a href=\"{url}\">{name}</a>",
-        parse_mode="HTML",
-        disable_web_page_preview=True,
-    )
-    await callback.answer()
+    await callback.answer(url=url)
 
 
 # ─── HOME ─────────────────────────────────────────────────────────────────────
