@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ли Бо — Вход</title>
+    <title>CRM - Вход</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="login-container">
-        <h1>Ли Бо — Аналитика</h1>
+        <h1>CRM Ли Бо</h1>
+        <p class="login-subtitle">Вход в систему</p>
         <form method="POST">
             {% if error %}
             <div class="error">{{ error }}</div>
@@ -21,7 +22,7 @@
                 <label for="password">Пароль</label>
                 <input type="password" id="password" name="password" required>
             </div>
-            <button type="submit" class="btn">Войти</button>
+            <button type="submit" class="btn btn-block">Войти</button>
         </form>
     </div>
 </body>
