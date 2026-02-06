@@ -38,10 +38,7 @@
                     <div class="kpi-label">Оценки</div>
                     <div class="kpi-value">{{ total_ratings }}</div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-label">Переходы в соц. сети</div>
-                    <div class="kpi-value">{{ total_social_clicks }}</div>
-                </div>
+
             </div>
 
             <div class="panel-row">
@@ -69,29 +66,7 @@
                 </section>
                 {% endif %}
 
-                {% if social_clicks_by_platform %}
-                <section class="panel panel-half">
-                    <div class="panel-header">Переходы по платформам</div>
-                    <div class="panel-body">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Платформа</th>
-                                    <th>Переходов</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for s in social_clicks_by_platform %}
-                                <tr>
-                                    <td>{{ s.platform }}</td>
-                                    <td>{{ s.cnt }}</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                {% endif %}
+
             </div>
 
             <section class="panel">
