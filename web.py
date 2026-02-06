@@ -76,19 +76,24 @@ def logout():
 # ─── Dashboard ────────────────────────────────────────────────────────────────
 
 
+DISPLAY_LIMIT = 100
+
+
 @app.route("/")
 @login_required
 def dashboard():
     db = get_db()
+
+    total_users = db.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+    total_quizzes = db.execute("SELECT COUNT(*) FROM quiz_sessions").fetchone()[0]
+    total_ratings = db.execute("SELECT COUNT(*) FROM cocktail_ratings").fetchone()[0]
+
     users = db.execute(
         "SELECT u.user_id, u.username, u.first_name, u.last_name, u.created_at, "
         "(SELECT COUNT(*) FROM quiz_sessions q WHERE q.user_id = u.user_id) as quiz_count "
-        "FROM users u ORDER BY u.created_at DESC"
+        "FROM users u ORDER BY u.created_at DESC LIMIT ?",
+        (DISPLAY_LIMIT,),
     ).fetchall()
-
-    total_users = len(users)
-    total_quizzes = db.execute("SELECT COUNT(*) FROM quiz_sessions").fetchone()[0]
-    total_ratings = db.execute("SELECT COUNT(*) FROM cocktail_ratings").fetchone()[0]
 
     top_cocktails = db.execute(
         "SELECT cocktail_name, COUNT(*) as cnt FROM cocktail_ratings "
@@ -116,6 +121,7 @@ def dashboard():
         top_cocktails=top_cocktails,
         total_social_clicks=total_social_clicks,
         social_clicks_by_platform=social_clicks_by_platform,
+        display_limit=DISPLAY_LIMIT,
     )
 
 
@@ -130,10 +136,14 @@ def user_detail(user_id):
     if not user:
         return "Пользователь не найден", 404
 
+    total_ratings = db.execute(
+        "SELECT COUNT(*) FROM cocktail_ratings WHERE user_id = ?", (user_id,)
+    ).fetchone()[0]
+
     ratings = db.execute(
         "SELECT cocktail_name, rating, review, created_at FROM cocktail_ratings "
-        "WHERE user_id = ? ORDER BY created_at DESC",
-        (user_id,),
+        "WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+        (user_id, DISPLAY_LIMIT),
     ).fetchall()
 
     quiz_count = db.execute(
@@ -142,7 +152,12 @@ def user_detail(user_id):
 
     db.close()
     return render_template(
-        "user_detail.html", user=user, ratings=ratings, quiz_count=quiz_count
+        "user_detail.html",
+        user=user,
+        ratings=ratings,
+        quiz_count=quiz_count,
+        total_ratings=total_ratings,
+        display_limit=DISPLAY_LIMIT,
     )
 
 
@@ -163,6 +178,21 @@ def export_data(fmt):
         "SELECT r.user_id, r.cocktail_name, r.rating, r.review, r.created_at "
         "FROM cocktail_ratings r ORDER BY r.created_at DESC"
     ).fetchall()
+
+    quiz_sessions = db.execute(
+        "SELECT qs.id, qs.user_id, qs.alcoholic, qs.temperature, qs.taste, "
+        "qs.tea_strength, qs.strength, qs.created_at "
+        "FROM quiz_sessions qs ORDER BY qs.created_at DESC"
+    ).fetchall()
+
+    try:
+        social_clicks = db.execute(
+            "SELECT sc.id, sc.user_id, sc.platform, sc.created_at "
+            "FROM social_clicks sc ORDER BY sc.created_at DESC"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        social_clicks = []
+
     db.close()
 
     if fmt == "csv":
@@ -170,14 +200,29 @@ def export_data(fmt):
         output.write(b'\xef\xbb\xbf')  # UTF-8 BOM for correct Russian characters display
         wrapper = io.TextIOWrapper(output, encoding='utf-8', newline='')
         writer = csv.writer(wrapper)
+
+        writer.writerow(["--- Пользователи ---"])
         writer.writerow(["user_id", "username", "first_name", "last_name", "created_at", "quiz_count"])
         for u in users:
             writer.writerow([u["user_id"], u["username"], u["first_name"], u["last_name"], u["created_at"], u["quiz_count"]])
 
         writer.writerow([])
+        writer.writerow(["--- Оценки ---"])
         writer.writerow(["user_id", "cocktail_name", "rating", "review", "created_at"])
         for r in ratings:
             writer.writerow([r["user_id"], r["cocktail_name"], r["rating"], r["review"], r["created_at"]])
+
+        writer.writerow([])
+        writer.writerow(["--- Подборы коктейлей ---"])
+        writer.writerow(["id", "user_id", "alcoholic", "temperature", "taste", "tea_strength", "strength", "created_at"])
+        for qs in quiz_sessions:
+            writer.writerow([qs["id"], qs["user_id"], qs["alcoholic"], qs["temperature"], qs["taste"], qs["tea_strength"], qs["strength"], qs["created_at"]])
+
+        writer.writerow([])
+        writer.writerow(["--- Переходы в соц. сети ---"])
+        writer.writerow(["id", "user_id", "platform", "created_at"])
+        for sc in social_clicks:
+            writer.writerow([sc["id"], sc["user_id"], sc["platform"], sc["created_at"]])
 
         wrapper.flush()
         wrapper.detach()
@@ -194,15 +239,25 @@ def export_data(fmt):
 
         wb = Workbook()
         ws_users = wb.active
-        ws_users.title = "Users"
+        ws_users.title = "Пользователи"
         ws_users.append(["user_id", "username", "first_name", "last_name", "created_at", "quiz_count"])
         for u in users:
             ws_users.append([u["user_id"], u["username"], u["first_name"], u["last_name"], u["created_at"], u["quiz_count"]])
 
-        ws_ratings = wb.create_sheet("Ratings")
+        ws_ratings = wb.create_sheet("Оценки")
         ws_ratings.append(["user_id", "cocktail_name", "rating", "review", "created_at"])
         for r in ratings:
             ws_ratings.append([r["user_id"], r["cocktail_name"], r["rating"], r["review"], r["created_at"]])
+
+        ws_quizzes = wb.create_sheet("Подборы коктейлей")
+        ws_quizzes.append(["id", "user_id", "alcoholic", "temperature", "taste", "tea_strength", "strength", "created_at"])
+        for qs in quiz_sessions:
+            ws_quizzes.append([qs["id"], qs["user_id"], qs["alcoholic"], qs["temperature"], qs["taste"], qs["tea_strength"], qs["strength"], qs["created_at"]])
+
+        ws_social = wb.create_sheet("Переходы в соц. сети")
+        ws_social.append(["id", "user_id", "platform", "created_at"])
+        for sc in social_clicks:
+            ws_social.append([sc["id"], sc["user_id"], sc["platform"], sc["created_at"]])
 
         output = io.BytesIO()
         wb.save(output)

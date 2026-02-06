@@ -95,7 +95,12 @@
             </div>
 
             <section class="panel">
-                <div class="panel-header">Пользователи</div>
+                <div class="panel-header">
+                    Пользователи
+                    {% if total_users > display_limit %}
+                    <span class="panel-hint">Показаны последние {{ display_limit }} из {{ total_users }}. <a href="{{ url_for('export_data', fmt='excel') }}">Скачать Excel</a> для полного списка.</span>
+                    {% endif %}
+                </div>
                 <div class="panel-body">
                     <table>
                         <thead>
