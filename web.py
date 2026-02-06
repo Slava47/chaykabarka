@@ -91,8 +91,19 @@ def dashboard():
     total_ratings = db.execute("SELECT COUNT(*) FROM cocktail_ratings").fetchone()[0]
 
     top_cocktails = db.execute(
-        "SELECT cocktail_name, COUNT(*) as cnt FROM cocktail_ratings "
+        "SELECT cocktail_name, COUNT(*) as cnt, "
+        "CASE WHEN COUNT(*) = 0 THEN 0 ELSE ROUND(1.0 * SUM(CASE WHEN rating = 'Отлично' THEN 1 ELSE 0 END) * 100 / COUNT(*)) END as pct_excellent "
+        "FROM cocktail_ratings "
         "GROUP BY cocktail_name ORDER BY cnt DESC LIMIT 10"
+    ).fetchall()
+
+    recent_reviews = db.execute(
+        "SELECT r.cocktail_name, r.rating, r.review, r.created_at, "
+        "u.username, u.first_name "
+        "FROM cocktail_ratings r "
+        "LEFT JOIN users u ON r.user_id = u.user_id "
+        "WHERE r.review IS NOT NULL AND r.review != '' "
+        "ORDER BY r.created_at DESC LIMIT 20"
     ).fetchall()
 
     db.close()
@@ -103,6 +114,7 @@ def dashboard():
         total_quizzes=total_quizzes,
         total_ratings=total_ratings,
         top_cocktails=top_cocktails,
+        recent_reviews=recent_reviews,
     )
 
 
