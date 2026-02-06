@@ -166,8 +166,10 @@ def export_data(fmt):
     db.close()
 
     if fmt == "csv":
-        output = io.StringIO()
-        writer = csv.writer(output)
+        output = io.BytesIO()
+        output.write(b'\xef\xbb\xbf')  # UTF-8 BOM for correct Russian characters display
+        wrapper = io.TextIOWrapper(output, encoding='utf-8', newline='')
+        writer = csv.writer(wrapper)
         writer.writerow(["user_id", "username", "first_name", "last_name", "created_at", "quiz_count"])
         for u in users:
             writer.writerow([u["user_id"], u["username"], u["first_name"], u["last_name"], u["created_at"], u["quiz_count"]])
@@ -177,9 +179,12 @@ def export_data(fmt):
         for r in ratings:
             writer.writerow([r["user_id"], r["cocktail_name"], r["rating"], r["review"], r["created_at"]])
 
+        wrapper.flush()
+        wrapper.detach()
+
         return Response(
             output.getvalue(),
-            mimetype="text/csv",
+            mimetype="text/csv; charset=utf-8",
             headers={"Content-Disposition": "attachment; filename=libo_export.csv"},
         )
 

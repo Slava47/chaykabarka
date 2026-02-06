@@ -3,63 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Гость {{ user.user_id }} — Ли Бо</title>
+    <title>Пользователь {{ user.user_id }} - CRM</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <nav class="navbar">
-        <a href="{{ url_for('dashboard') }}" class="nav-brand">Ли Бо | Аналитика</a>
-        <div class="nav-links">
-            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-danger">Выход</a>
-        </div>
-    </nav>
-
-    <div class="container">
-        <h1>Карточка гостя</h1>
-        <div class="metrics">
-            <div class="metric-card">
-                <div class="metric-value">{{ user.user_id }}</div>
-                <div class="metric-label">ID</div>
+    <div class="crm-layout">
+        <aside class="sidebar">
+            <div class="sidebar-brand">CRM Ли Бо</div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard') }}" class="sidebar-link">Дашборд</a>
+                <a href="{{ url_for('export_data', fmt='csv') }}" class="sidebar-link">Экспорт CSV</a>
+                <a href="{{ url_for('export_data', fmt='excel') }}" class="sidebar-link">Экспорт Excel</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="sidebar-link sidebar-logout">Выход</a>
             </div>
-            <div class="metric-card">
-                <div class="metric-value">{{ quiz_count }}</div>
-                <div class="metric-label">Подборов</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-value">{{ ratings|length }}</div>
-                <div class="metric-label">Оценок</div>
-            </div>
-        </div>
+        </aside>
 
-        <p><strong>Username:</strong> {{ user.username or '-' }}</p>
-        <p><strong>Имя:</strong> {{ user.first_name or '-' }} {{ user.last_name or '-' }}</p>
-        <p><strong>Регистрация:</strong> {{ user.created_at }}</p>
+        <main class="main-content">
+            <header class="topbar">
+                <h1 class="page-title">Карточка пользователя</h1>
+            </header>
 
-        {% if ratings %}
-        <h2>Оценки коктейлей</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Коктейль</th>
-                    <th>Оценка</th>
-                    <th>Отзыв</th>
-                    <th>Дата</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in ratings %}
-                <tr>
-                    <td>{{ r.cocktail_name }}</td>
-                    <td>{{ r.rating }}</td>
-                    <td>{{ r.review or '-' }}</td>
-                    <td>{{ r.created_at }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>Оценок пока нет.</p>
-        {% endif %}
+            <div class="dashboard-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">ID</div>
+                    <div class="kpi-value">{{ user.user_id }}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Подборов</div>
+                    <div class="kpi-value">{{ quiz_count }}</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Оценок</div>
+                    <div class="kpi-value">{{ ratings|length }}</div>
+                </div>
+            </div>
+
+            <section class="panel">
+                <div class="panel-header">Информация</div>
+                <div class="panel-body">
+                    <dl class="detail-list">
+                        <dt>Username</dt>
+                        <dd>{{ user.username or '-' }}</dd>
+                        <dt>Имя</dt>
+                        <dd>{{ user.first_name or '-' }} {{ user.last_name or '-' }}</dd>
+                        <dt>Дата регистрации</dt>
+                        <dd>{{ user.created_at }}</dd>
+                    </dl>
+                </div>
+            </section>
+
+            {% if ratings %}
+            <section class="panel">
+                <div class="panel-header">Оценки коктейлей</div>
+                <div class="panel-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Коктейль</th>
+                                <th>Оценка</th>
+                                <th>Отзыв</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in ratings %}
+                            <tr>
+                                <td>{{ r.cocktail_name }}</td>
+                                <td>{{ r.rating }}</td>
+                                <td>{{ r.review or '-' }}</td>
+                                <td>{{ r.created_at }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            {% else %}
+            <section class="panel">
+                <div class="panel-header">Оценки коктейлей</div>
+                <div class="panel-body">
+                    <p>Оценок пока нет.</p>
+                </div>
+            </section>
+            {% endif %}
+        </main>
     </div>
 </body>
 </html>
