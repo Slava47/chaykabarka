@@ -26,8 +26,8 @@ except ImportError:
 DB_PATH = os.getenv("DB_PATH", "libo.db")
 SECRET_KEY = os.getenv("FLASK_SECRET", "super-secret-key-libo-2024")
 
-ADMIN_LOGIN = "admin"
-ADMIN_PASSWORD = "adminLIBO"
+ADMIN_LOGIN = os.getenv("ADMIN_LOGIN", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "adminLIBO")
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY

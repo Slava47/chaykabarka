@@ -30,6 +30,9 @@ from cocktails import (
 )
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+if not BOT_TOKEN:
+    raise ValueError("Переменная окружения BOT_TOKEN не задана. Получите токен у @BotFather.")
+
 PICTURES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pictures")
 
 logging.basicConfig(level=logging.INFO)

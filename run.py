@@ -24,7 +24,7 @@ def run_bot():
 
 
 if __name__ == "__main__":
-    web_process = multiprocessing.Process(target=run_web, daemon=True)
+    web_process = multiprocessing.Process(target=run_web)
     web_process.start()
 
     try:
