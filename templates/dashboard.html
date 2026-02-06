@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ли Бо — Аналитика</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <span class="nav-brand">Ли Бо | Аналитика</span>
+        <div class="nav-links">
+            <a href="https://vk.com/libotea" target="_blank">VK</a>
+            <a href="https://t.me/libo_tea" target="_blank">Telegram</a>
+            <a href="https://www.instagram.com/libo.tea/" target="_blank">Instagram</a>
+            <a href="{{ url_for('export_data', fmt='csv') }}" class="btn btn-sm">CSV</a>
+            <a href="{{ url_for('export_data', fmt='excel') }}" class="btn btn-sm">Excel</a>
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-danger">Выход</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-value">{{ total_users }}</div>
+                <div class="metric-label">Гостей</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ total_quizzes }}</div>
+                <div class="metric-label">Подборов</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ total_ratings }}</div>
+                <div class="metric-label">Оценок</div>
+            </div>
+        </div>
+
+        {% if top_cocktails %}
+        <h2>Популярные коктейли</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Коктейль</th>
+                    <th>Оценок</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in top_cocktails %}
+                <tr>
+                    <td>{{ c.cocktail_name }}</td>
+                    <td>{{ c.cnt }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        <h2>Гости</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Имя</th>
+                    <th>Фамилия</th>
+                    <th>Подборов</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td><a href="{{ url_for('user_detail', user_id=u.user_id) }}">{{ u.user_id }}</a></td>
+                    <td>{{ u.username or '-' }}</td>
+                    <td>{{ u.first_name or '-' }}</td>
+                    <td>{{ u.last_name or '-' }}</td>
+                    <td>{{ u.quiz_count }}</td>
+                    <td>{{ u.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
