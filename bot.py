@@ -19,7 +19,7 @@ from aiogram.types import (
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
-from database import init_db, add_user, add_quiz_session, add_cocktail_rating, get_user_stats
+from database import init_db, add_user, add_quiz_session, add_cocktail_rating, get_user_stats, add_social_click
 from cocktails import (
     get_cocktails_by_category,
     get_category_name,
@@ -211,13 +211,30 @@ async def about(callback: CallbackQuery, state: FSMContext):
         "Наши соц. сети:"
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="ВКонтакте", url="https://vk.com/libotea")],
-        [InlineKeyboardButton(text="Telegram", url="https://t.me/libo_tea")],
-        [InlineKeyboardButton(text="Instagram", url="https://www.instagram.com/libo.tea/")],
+        [InlineKeyboardButton(text="ВКонтакте", callback_data="social_vk")],
+        [InlineKeyboardButton(text="Telegram", callback_data="social_tg")],
+        [InlineKeyboardButton(text="Instagram", callback_data="social_ig")],
         [InlineKeyboardButton(text="« Назад", callback_data="home")],
     ])
     await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await callback.answer()
+
+
+# ─── SOCIAL LINKS ─────────────────────────────────────────────────────────────
+
+SOCIAL_URLS = {
+    "social_vk": ("ВКонтакте", "https://vk.com/libotea"),
+    "social_tg": ("Telegram", "https://t.me/libo_tea"),
+    "social_ig": ("Instagram", "https://www.instagram.com/libo.tea/"),
+}
+
+
+@router.callback_query(F.data.in_(SOCIAL_URLS.keys()))
+async def social_click(callback: CallbackQuery):
+    key = callback.data
+    name, url = SOCIAL_URLS[key]
+    await add_social_click(callback.from_user.id, name)
+    await callback.answer(url=url)
 
 
 # ─── HOME ─────────────────────────────────────────────────────────────────────
