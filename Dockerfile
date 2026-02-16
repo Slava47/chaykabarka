@@ -11,6 +11,6 @@ RUN mkdir -p pictures
 
 EXPOSE 5000
 
-ENV DB_PATH=/app/libo.db
+ENV DB_PATH=/app/data/libo.db
 
 CMD ["python", "run.py"]
